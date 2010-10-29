@@ -1,0 +1,14 @@
+/Makefile.mk/1.4/Sun Oct 28 00:17:46 2007//
+/mblen.c/1.1/Sat Jan 15 16:51:17 2005//
+/mbrtowc.c/1.2/Sat Jan 15 16:51:17 2005//
+/mbstowcs.c/1.2/Sat Jan 15 16:51:17 2005//
+/mbtowc.c/1.2/Sat Jan 15 16:51:17 2005//
+/wchar.h/1.3/Tue Aug  2 23:29:27 2005//
+/wcslen.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wcsncmp.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wctfunc.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wctomb.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wctype.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wctype.h/1.1.1.1/Sat Dec  4 13:51:25 2004//
+/wcwidth.c/1.1.1.1/Sat Dec  4 13:51:25 2004//
+D

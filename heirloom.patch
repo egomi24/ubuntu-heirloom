@@ -1,0 +1,160 @@
+--- heirloom-sh/makefile	2010-10-29 11:55:06.923952805 -0400
++++ heirloom-sh/makefile	2010-10-29 11:55:14.073224893 -0400
+@@ -23,7 +23,7 @@
+ #
+ # A BSD-compatible install command.
+ #
+-UCBINST=/usr/ucb/install
++UCBINST=install
+ 
+ #
+ # The strip command that is used at installation time.
+--- heirloom/build/mk.config 17 Mar 2007 14:00:40 -0000 1.17
++++ heirloom/build/mk.config 30 Sep 2010 12:34:03 -0000
+@@ -6,7 +6,7 @@
+ # Bourne shell is recommended. It then must obviously be compiled and
+ # installed first.
+ #
+-SHELL = /sbin/sh
++SHELL = /usr/5bin/sh
+ 
+ #
+ # Specify the path name for a POSIX-conforming shell here. For example,
+--- heirloom/makefile 24 Feb 2007 22:47:20 -0000 1.22
++++ heirloom/makefile 30 Sep 2010 12:37:12 -0000
+@@ -1,4 +1,4 @@
+-SHELL = /sbin/sh
++SHELL = /usr/5bin/sh
+ 
+ SUBDIRS = build libwchar libcommon libuxre _install \
+	banner basename bc bdiff bfs \
+# The strip command that is used at installation time.
+--- heirloom-pkgtools/libpkg/verify.c 2007-02-27 14:51:43.000000000 -0500
++++ heirloom-pkgtools/libpkg/verify.c 2010-06-17 14:43:26.528150592 -0400
+@@ -263,7 +263,7 @@
+  */
+ 
+ unsigned long
+-compute_checksum(int *r_cksumerr, char *a_path)
++bad_compute_checksum(int *r_cksumerr, char *a_path)
+ {
+	CHECKSUM_T	suma;	/* to split four-bytes into 2 two-byte values */
+	CHECKSUM_T	tempa;
+@@ -1014,3 +1014,75 @@
+ {
+	enable_checksum = 0;
+ }
++
++
++unsigned long
++compute_checksum(int *r_cksumerr, char *name)
++{
++ uint16_t sum;
++ uint32_t s;
++ int err = 0;
++ int fd;
++ ssize_t sz, i;
++ char buf[4096];
++ unsigned long long nbytes;
++        unsigned long thesum;
++  int rflag;
++
++ /* reset error flag */
++ *r_cksumerr = 0;
++
++ if (name) {
++ if ((fd = open(name, O_RDONLY)) < 0) {
++ *r_cksumerr = 1;
++ reperr(pkg_gt(ERR_READ));
++ return (0);
++ }
++ } else fd = 0;
++
++ sum = 0;
++ nbytes = 0;
++ s = 0;
++ while ((sz = read(fd, buf, sizeof buf)) > 0) {
++ nbytes += sz;
++ if (rflag) {
++ for (i = 0; i < sz; i++) {
++ if (sum&01)
++ sum = (sum>>1) + 0x8000;
++ else
++ sum >>= 1;
++ sum += buf[i] & 0377;
++ sum &= 0xFFFF;
++ }
++ } else {
++ for (i = 0; i < sz; i++)
++ s += buf[i] & 0377;
++ }
++ }
++ if (sz < 0) {
++ *r_cksumerr = 1;
++ reperr(pkg_gt(ERR_NO_CKSUM));
++ return (0);
++ }
++ if (rflag)
++        /*
++ printf("%.5u %5llu", (unsigned)sum,
++ (unsigned long long)(nbytes+UNIT-1)/UNIT);
++        */
++                thesum = (unsigned long)s;
++ else {
++ s = (s & 0xFFFF) + (s >> 16);
++ s = (s & 0xFFFF) + (s >> 16);
++ /* printf("%u %llu", (unsigned)s,
++ (unsigned long long)(nbytes+UNIT-1)/UNIT);
++        */
++          thesum = (unsigned long)s;
++ }
++/* if(name)
++ printf(" %s", name);
++ printf("\n");
++*/
++ if (fd > 0)
++ close(fd);
++        return(thesum);
++}
+--- heirloom-pkgtools/mk.config 2007-03-17 10:01:52.000000000 -0400
++++ heirloom-pkgtools/mk.config 2010-06-17 14:53:37.308150721 -0400
+@@ -2,7 +2,7 @@
+ # Path to the Heirloom Bourne shell. It is used during compilation
+ # as well as by the package commands.
+ #
+-SHELL = /sbin/sh
++SHELL = /usr/5bin/sh
+ 
+ #
+ # A BSD-compatible install command.
+@@ -69,7 +69,7 @@
+ # Use -D_GNU_SOURCE for Linux with GNU libc.
+ # Use -D_INCLUDE__STDC_A1_SOURCE for HP-UX.
+ #
+-CPPFLAGS=-D_GNU_SOURCE
++CPPFLAGS=-D_GNU_SOURCE -U_FORTIFY_SOURCE
+ 
+ #
+ # Warning flags for the compiler.
+--- heirloom-pkgtools/libpkg/runcmd.c 27 Feb 2007 19:51:39 -0000 1.1.1.1
++++ heirloom-pkgtools/libpkg/runcmd.c 30 Sep 2010 12:51:33 -0000
+@@ -177,7 +177,7 @@
+ 
+		/* execute target executable */
+ 
+-		execl("/sbin/sh", "/sbin/sh", "-c", cmd, NULL);
++		execl("/usr/5bin/sh", "/usr/5bin/sh", "-c", cmd, NULL);
+		progerr(pkg_gt("exec of <%s> failed, errno=%d"), cmd, errno);
+		_exit(99);
+	} else if (pid < 0) {
+--- heirloom-pkgtools/mk.config	2010-10-29 11:35:51.193329084 -0400
++++ heirloom-pkgtools/mk.config	2010-10-29 11:36:20.203594927 -0400
+@@ -7,7 +7,7 @@
+ #
+ # A BSD-compatible install command.
+ #
+-INSTALL=/usr/ucb/install
++INSTALL=install
+ 
+ #
+ # Where the Heirloom Development Tools package has been placed.
